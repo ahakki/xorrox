@@ -15,18 +15,18 @@ import Data.Function (($), (.))
 import Text.Show (Show (show))
 
 data Canonical
+  --Numerals
+  = N0 | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9
   --Whitespace
-  = WEOL | WSPACE
+  | WEOL | WSPACE
   --Special
-  | SQMARK | SEXMARK | SSTOP |SCOMMA
+  | SQMARK | SEXMARK | SSTOP | SCOMMA | SDASH
   --Uppercase
   | LA | LB | LC | LD | LE | LF | LG | LH | LI | LJ | LK | LL | LM
   | LN | LO | LP | LQ | LR | LS | LT | LU | LV | LW | LX | LY | LZ
   --Lowercase
   | La | Lb | Lc | Ld | Le | Lf | Lg | Lh | Li | Lj | Lk | Ll | Lm
   | Ln | Lo | Lp | Lq | Lr | Ls | Lt | Lu | Lv | Lw | Lx | Ly | Lz
-  --Numerals
-  | N0 | N1 | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9
   deriving (Eq, Enum, Bounded)
 
 instance {-# OVERLAPPING #-} Show [Canonical] where
@@ -99,19 +99,19 @@ instance {-# OVERLAPPING #-} Show [Canonical] where
   show (SEXMARK : xs) =  "!" ++ show xs
   show (SSTOP : xs) =  "." ++ show xs
   show (SCOMMA : xs) =  "," ++ show xs
+  show (SDASH : xs) = "-" ++ show xs
   show (WSPACE : xs) =  "_" ++ show xs
-  show (WEOL : xs) =  "~" ++ show xs
+  show (WEOL : xs) =  "~\n" ++ show xs
 
 instance {-# OVERLAPPING #-} Show [Maybe Canonical] where
   show :: [Maybe Canonical] -> [Char]
   -- Parse Error is displayed as #
   show (Nothing        : xs) =  "#" ++ show xs
-  --empty input gives empty output
-  show []                    =   ""
-  show ((Just WSPACE ) : xs) =  "_" ++ show xs
-  show ((Just WEOL   ) : xs) =  "~" ++ show xs
-  show ((Just x     ) : xs) =  show [x] ++ show xs
-
+  --empty input gives this output
+  show []                    = ""
+  show ((Just WSPACE ) : xs) = "_" ++ show xs
+  show ((Just WEOL   ) : xs) = "~" ++ show xs
+  show ((Just x     ) : xs)  = show [x] ++ show xs
 
 class Heretical a where
   heresyParser :: [a] -> ([Canonical], [a])
@@ -153,7 +153,7 @@ instance Heretical Char where
   heresyParser ( 'Q'  : rest) = ([LQ]     , rest)
   heresyParser ( 'R'  : rest) = ([LR]     , rest)
   heresyParser ( 'S'  : rest) = ([LS]     , rest)
-  heresyParser ( 'T'  : rest) = ([Canonical.LT]     , rest)
+  heresyParser ( 'T'  : rest) = ([LT]     , rest)
   heresyParser ( 'U'  : rest) = ([LU]     , rest)
   heresyParser ( 'V'  : rest) = ([LV]     , rest)
   heresyParser ( 'W'  : rest) = ([LW]     , rest)
@@ -200,6 +200,7 @@ instance Heretical Char where
   heresyParser ( '!'  : rest) = ([SEXMARK], rest)
   heresyParser ( '.'  : rest) = ([SSTOP  ], rest)
   heresyParser ( ','  : rest) = ([SCOMMA ], rest)
+  heresyParser ( '-'  : rest) = ([SDASH], rest)
   heresyParser ( ' '  : rest) = ([WSPACE ], rest)
   heresyParser ( '\n' : rest) = ([WEOL   ], rest)
   heresyParser x            = ([]       , x )

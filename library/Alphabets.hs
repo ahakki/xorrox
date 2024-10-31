@@ -1,37 +1,93 @@
 {-# LANGUAGE InstanceSigs #-}
-module Alphabets where
+{-# LANGUAGE LambdaCase #-}
+module Alphabets 
+  ( Password ()
+  , VLine ()
+  , VTable ()
+  , Clear ()
+  , Hidden ()
+  , mkPassword
+  , mkCleartext
+  , mkHiddentext
+  , vigengL
+  , gnegivL
+  , passlist
+  , passmatrix
+  , canonicallist
+  , samplePass
+  , sampleMatrix
+  , rescape
+  ) where
 
-import Canonical (Canonical (..))
+import Canonical (Canonical (..), Heretical (readHeresies))
 import Data.Maybe (fromJust)
 import Data.List (elemIndex)
+
+
+
+rescape :: [Char] -> [Char]
+rescape = map (\case '~' -> '\n'; '_' -> ' '; x -> x)
 
 newtype VLine = VLine [Canonical]
 
 instance Show VLine where
   show :: VLine -> String
-  show (VLine x) = show x
+  show (VLine xs) =
+      "***ONE VLine***\n" ++ 
+      filter (/= '\n') (show xs)
 
 newtype VTable = VTable [[Canonical]]
 
 instance Show VTable where
   show :: VTable -> String
-  show (VTable x) = show $ concat x
+  show (VTable xs) = 
+     "***START VTable***\n" ++  
+      filter (/= '\n') (show (concat xs)) ++ 
+     "\n***END VTable***"
 
 newtype Password = Password [Canonical]
 
+instance Show Password where
+  show :: Password -> String
+  show _ = "***"
+
+mkPassword :: Heretical a => [a] -> Password
+mkPassword x
+    | notElem Nothing (readHeresies x) =
+        Password $ map fromJust $ readHeresies x
+    | otherwise = error "mkPassword: Illegal Character in String"
+
 newtype Hidden = Hidden VLine
+
+mkHiddentext :: Heretical a => [a] -> Hidden
+mkHiddentext x
+    | notElem Nothing (readHeresies x) =
+        Hidden $ VLine $ map fromJust $ readHeresies x
+    | otherwise = error "mkHiddentext: Illegal Character in String"
 
 instance Show Hidden where
   show :: Hidden -> String
   show (Hidden (VLine [])  )                  =   ""
-  show (Hidden (VLine (x: xs))) =  show [x] ++ show (Hidden $ VLine xs)
- 
+  show (Hidden (VLine (x: xs))) =
+      "***START Hidden***\n" ++ 
+      show [x] ++ show xs ++ 
+      "\n***END Hidden***"
+
 newtype Clear = Clear VLine
+
+mkCleartext :: Heretical a => [a] -> Clear
+mkCleartext x
+    | notElem Nothing (readHeresies x) =
+        Clear $ VLine $ map fromJust $ readHeresies x
+    | otherwise = error "mkCleartext: Illegal Character in String"
 
 instance Show Clear where
   show :: Clear -> String
-  show (Clear (VLine [])       )             =   ""
-  show (Clear (VLine (x: xs))) =  show [x] ++ show (Clear $ VLine xs)
+  show (Clear (VLine [])       ) = ""
+  show (Clear (VLine (x: xs))) =
+      "***START Clear***\n" ++ 
+      (show [x] ++ show xs) ++ 
+      "\n***END Clear***"
 
 canonicallist :: VLine
 canonicallist = VLine [minBound .. maxBound]
@@ -55,33 +111,36 @@ passmatrix (VLine a) =
         passmatrix' (acc ++ [x : xs]) (xs ++ [x]) (i - 1)
     passmatrix' _ _ _ = []
 
-testmatrix :: VTable
-testmatrix = passmatrix canonicallist
+sampleMatrix :: VTable
+sampleMatrix = passmatrix canonicallist
 
 vigengL :: VTable -> Clear -> Password -> Hidden
-vigengL (VTable a) (Clear (VLine b)) (Password c) =  
-    Hidden $ VLine $ vigengL' a c b c 
+vigengL (VTable a) (Clear (VLine b)) (Password c) =
+    Hidden $ VLine $ vigengL' a c b c
   where
+    vigengL' :: [[Canonical]] -> [Canonical] ->[Canonical] -> [Canonical] -> [Canonical]
     vigengL' _ [] _ _ = []
     vigengL' _ _ [] _ = []
     vigengL' matrix (x:xs) (y:ys) p =
         vigeng matrix x y : vigengL' matrix (xs++[x]) ys p
-    
+    vigeng :: [[Canonical]] -> Canonical ->Canonical -> Canonical
     vigeng matrix pass input =
-        head $ drop j $ head (drop i matrix)
+        head $ drop j $ head $ drop i matrix
       where
         i = fromEnum pass
         j = fromEnum input
 
 gnegivL :: VTable -> Hidden -> Password -> Clear
-gnegivL (VTable a) (Hidden (VLine b)) (Password c) =  
+gnegivL (VTable a) (Hidden (VLine b)) (Password c) =
     Clear $ VLine $ gnegivL' a c b c
   where
+    gnegivL' :: [[Canonical]] -> [Canonical] ->[Canonical] -> [Canonical] -> [Canonical]
     gnegivL' _ [] _ _ = []
     gnegivL' _ _ [] _ = []
-    gnegivL' matrix (x:xs) (y:ys) p = 
+    gnegivL' matrix (x:xs) (y:ys) p =
         gnegiv matrix x y : gnegivL' matrix (xs++[x]) ys p
-    gnegiv matrix pass input = 
+    gnegiv :: [[Canonical]] -> Canonical ->Canonical -> Canonical
+    gnegiv matrix pass input =
         toEnum $ fromJust j
       where
         i = fromEnum pass

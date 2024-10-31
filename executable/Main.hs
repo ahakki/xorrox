@@ -1,74 +1,64 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
+module Main (main) where
 
-module Main where
 import Alphabets
-import Canonical
+    ( canonicallist,
+      Password,
+      passlist,
+      passmatrix,
+      vigengL,
+      gnegivL,
+      rescape,
+      mkPassword,
+      mkCleartext,
+      mkHiddentext )
+
+import Canonical ( Heretical(readHeresies) )
 
 import Data.Char (toUpper)
-import Data.Maybe (fromJust)
 
 main :: IO()
 main = do
-  putStrLn "Spaces are displayed as underscores (_). The ending of a line is indicated by a tilde (~). Any parse errors are displyed as a hash (#)."
-  putStrLn "Mode selection: Encrypt or Decrypt (E/D) (default E): "
-  mode <- getLine
-  if map toUpper mode /= "D" && map toUpper mode /= "E" && mode /= "" then
-    main
-  else do
-    putStrLn "Password:"
-    pw <- getLine
-    let y = readHeresies pw
-    if notElem Nothing y then do
-      let password = Password $ map fromJust y
-      if map toUpper mode == "D" then
-        decrypt password
-      else encrypt password
-    else do print y; main
+  putStrLn "Spaces are displayed as underscores (_). The ending of a line is indicated by a tilde (~) and can be entered as such. Any parse errors are displyed as a hash (#)."
+  choose
+
+showParseErrors :: Heretical a => [a] -> IO ()
+showParseErrors x = print (readHeresies x)
 
 choose :: IO()
 choose = do
   putStrLn "Mode selection: Encrypt or Decrypt (E/D) (default E): "
-  mode <- getLine
+  mode <- getLine 
   if map toUpper mode /= "D" && map toUpper mode /= "E" && mode /= "" then
     choose
   else do
     putStrLn "Password:"
     pw <- getLine
-    let y = readHeresies pw
-    if Nothing `notElem` y then do
-      let password = Password $ map fromJust y
+    if notElem Nothing $ readHeresies $ rescape pw then do
+      let password = mkPassword $ rescape pw
       if map toUpper mode == "D" then
         decrypt password
       else encrypt password
-    else do print y; main
+    else do showParseErrors pw; choose
 
 
 encrypt :: Password -> IO()
 encrypt pw = do
   putStrLn "Message to ENCRYPT:"
   x <- getLine
-  let y = readHeresies x
-  if Nothing `notElem` y then do
-    let a = Clear $ VLine $ map fromJust y
+  if notElem Nothing $ readHeresies $ rescape x then do
+    let a = mkCleartext $ rescape x
     print (vigengL (passmatrix (passlist canonicallist pw)) a pw)
-    main
-    print a
-  else do
-    print y
-    main
+    choose
+  else do showParseErrors x; encrypt pw
 
 decrypt :: Password -> IO()
 decrypt pw = do
   putStrLn "Message to DECRYPT:"
   x <- getLine
-  let y = readHeresies x
-  if Nothing `notElem` y then do
-    let a = Hidden $ VLine $ map fromJust y
+  if notElem Nothing $ readHeresies $ rescape x then do
+    let a = mkHiddentext $ rescape x
     print (gnegivL (passmatrix (passlist canonicallist pw)) a pw)
-    main
-    print a
-  else do
-    print y
-    main
+    choose
+  else do showParseErrors x; decrypt pw
 
 
