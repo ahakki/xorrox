@@ -1,8 +1,11 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs      #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE LambdaCase   #-}
 
-module Heretical (Heretical (..)) where
+module Heretical 
+  --(Heretical (..)) 
+where
 
 import           Canonical     (Canonical (..))
 
@@ -37,6 +40,12 @@ class Heretical a where
   
   readableHeresies :: [a] -> Bool
   readableHeresies x = notElem Nothing (readHeresies x)
+
+rescape :: [Char] -> [Char]
+rescape = map (\case '#' -> '\n'; '_' -> ' '; x -> x)
+
+escape :: [Char] -> [Char]
+escape = map (\case '\n' -> '#'; ' ' -> '_'; x -> x)
  
 instance Heretical Char where
   heresyParser :: [Char] -> ([Canonical], [Char])

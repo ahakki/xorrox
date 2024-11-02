@@ -2,7 +2,9 @@
 {-# LANGUAGE InstanceSigs      #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Canonical (Canonical (..)) where
+module Canonical
+  -- (Canonical (..), CString) 
+where
 
 import           Data.Char     (Char)
 import           Data.Eq       (Eq)
@@ -25,8 +27,10 @@ data Canonical
   | Lv | Lw | Lx | Ly
   deriving (Eq, Enum, Bounded, Show)
 
-instance {-# OVERLAPPING #-} Show [Canonical] where
-  show :: [ Canonical] -> [Char]
+type CString = [Canonical]
+
+instance {-# OVERLAPPING #-} Show CString where
+  show :: CString -> [Char]
   --empty input gives empty output
   show []             =   ""
   show (LA : xs)      =  "A" ++ show xs
