@@ -1,5 +1,4 @@
-{-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE InstanceSigs      #-}
 
 module Alphabets
   --( Password (), VLine (), VTable (), Clear (), Hidden ()
@@ -11,22 +10,12 @@ module Alphabets
   --)
 where
 
-import           Canonical     (Canonical (..), CString)
+import           Canonical     (CString, Canonical (..))
 import           Heretical     (Heretical (..), escape)
 
-import           Data.Bool     (otherwise)
-import           Data.Char     (Char)
-import           Data.Function (($), (.))
-import           Data.List     (drop, elemIndex, filter, head, length, map,
-                                (++), concat, cycle, take)
+import           Data.List     (elemIndex)
 import           Data.Maybe    (fromJust)
-import           GHC.Enum      (Bounded (maxBound, minBound),
-                                Enum (fromEnum, toEnum))
-import           Text.Show     (Show (show))
 
-import           Data.Eq       (Eq ((/=)))
-import           GHC.Err       (error)
-import           GHC.Num       (Num((-)))
 
 newtype VLine = VLine CString
 
@@ -100,6 +89,22 @@ base85matrix (VLine a) = passmatrix . VLine $ take 85 a
 
 newtype VCube = VCube [[CString]]
 
+instance Show VCube where
+  show :: VCube -> [Char]
+  show (VCube xs) =
+    "***START VTable***\n"
+      ++ escape (show (concat $ concat xs))
+      ++ "\n***END VTable***"
+
+mkVCube :: VTable -> VCube
+mkVCube (VTable a) = 
+  VCube $ passmatrix' [] a (length a)
+  where
+    passmatrix' acc _ 0 = acc
+    passmatrix' acc (x : xs) i =
+      passmatrix' (acc ++ [x : xs]) (xs ++ [x]) (i - 1)
+    passmatrix' _ _ _ = []
+
 samplePass :: Password
 samplePass = Password [LL, LA, LB, LR, LA, LD, LO, LR]
 
@@ -154,12 +159,12 @@ gnegivL (VTable a) (Hidden (VLine b)) (Password c) =
         i = fromEnum pass
         j = elemIndex input $ head $ drop i matrix
 
-hide :: Password -> Clear -> Hidden 
+hide :: Password -> Clear -> Hidden
 hide a b = vigengL m b a
   where
-    m = passmatrix $ passline (VLine [minBound..maxBound]) a
+    m = passmatrix $ passline canonicallist a
 
 reveal :: Password -> Hidden -> Clear
 reveal a b = gnegivL m b a
   where
-    m = passmatrix $ passline (VLine [minBound..maxBound]) a
+    m = passmatrix $ passline canonicallist a

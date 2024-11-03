@@ -17,10 +17,13 @@ library
                      , Classical
                      , Heretical
                      , Alphabets
+                     , SoupKitchen
   other-modules:
   ghc-options:         -Wall
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
+                     , random >= 1.2.1.0 && < 1.2.2
+                     , bytestring
 
 executable xerxes
   hs-source-dirs:      executable
