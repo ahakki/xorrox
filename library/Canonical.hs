@@ -16,15 +16,15 @@ import           Text.Show     (Show (show))
 data Canonical
   = LG | LH | LI | LJ | LK | LL | LA    | N0 | N1 | N2 | N3 | N4
   | LM | LB | LN | LO | LP | LQ | LR    | N5 | N6 | N7 | N8 | N9
-  | LS | LT | LC | LU | LV | LW | LX 
-  | LY | LZ | LD | LE | LF 
+  | LS | LT | LC | LU | LV | LW | LX
+  | LY | LZ | LD | LE | LF      | LÄ | LÖ | LÜ 
                                         
   | Lb | Lk | Ll | Lm | Ln              | WEOL | WSPACE
   | Lc | Lh | Li | Lj                   | SQMARK | SEXMARK | SSTOP 
   | La | Lo | Lp | Lq | Lr              | SCOMMA | SDASH 
-  | Ld | Le | Lf | Lg
-  | Ls | Lt | Lu | Lz
-  | Lv | Lw | Lx | Ly
+  | Ld | Le | Lf | Lg                   | SOPAREN | SCPAREN
+  | Ls | Lt | Lu | Lz                   | SOBRKE | SCBRKT
+  | Lv | Lw | Lx | Ly                   | SOBRACE | SCBRACE
   deriving (Eq, Enum, Bounded, Show)
 
 type CString = [Canonical]

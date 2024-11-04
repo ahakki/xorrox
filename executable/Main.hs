@@ -6,6 +6,7 @@ import Classical
 import Canonical
 import Heretical
 import Alphabets
+import SoupKitchen
 
 import           Heretical (Heretical (..), escape, rescape)
 import           Alphabets (Password, canonicallist, gnegivL, mkCleartext,

@@ -5,44 +5,93 @@ module Classical
   --(Classical (..))
 where
 
-import           Data.Word
-import           Canonical       (CString, Canonical)
-import           Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
+import           Canonical (CString, Canonical)
+import           Data.List       (elemIndex)
+import           Data.Maybe      (fromJust)
+import           Data.Word       (Word8)
+
 
 class Classical a where
-    serialize :: a -> ByteString
-    deserialize :: ByteString -> a
+    serialize :: a -> [Word8]
+    deserialize :: [Word8] -> a
 
 instance Classical CString where
-    serialize :: CString -> ByteString
-    serialize a = BS.pack $ Prelude.map fromIntegral $ serialize' a
-      where
-        serialize' :: CString -> [Int]
-        serialize' [] = []
-        serialize' (x: xs) = 
-            fromIntegral (fromEnum x)  : serialize' xs
 
-    deserialize :: ByteString -> CString
-    deserialize a = 
-        deserialize' $ map fromIntegral $ BS.unpack a
-      where
-        deserialize' :: [Int] -> CString
-        deserialize' [] = []
-        deserialize' (x: xs) = 
-            toEnum (fromIntegral x)  : deserialize' xs
+    serialize :: CString -> [Word8]
+    serialize [] = []
+    serialize (x: xs) =
+        fromIntegral (fromEnum x)  : serialize xs
+
+    deserialize :: [Word8] -> CString
+    deserialize [] = []
+    deserialize (x: xs) =
+        toEnum (fromIntegral x)  : deserialize xs
 
 instance Classical Canonical where
-    serialize :: Canonical -> ByteString
-    serialize x = 
-        BS.singleton $ fromIntegral $ fromEnum x
+    serialize :: Canonical -> [Word8]
+    serialize x = [fromIntegral $ fromEnum x]
 
-    deserialize :: ByteString -> Canonical
+    deserialize :: [Word8] -> Canonical
     deserialize x
-      |  BS.length x == 1 = 
-            toEnum $ fromIntegral $ head $ BS.unpack x
-      |  otherwise = 
-            error "Bytestring of length > 1 is not allowed"
+      |  length x == 1 =
+            toEnum $ fromIntegral $ head x
+      |  otherwise =
+            error "List Word8 of length > 1 is not allowed"
 
 wordlist :: [Word8]
 wordlist = [minBound..maxBound]
+
+wordpasslist :: [Word8] -> [Word8] -> [Word8]
+wordpasslist list [] = list
+wordpasslist (x : xs) (p : ps) =
+  wordpasslist ( p : filter (/= p) (x : xs)) ps
+wordpasslist _ _ =  []
+
+wordmatrix :: [Word8] -> [[Word8]]
+wordmatrix a = passmatrix' [] a (length a)
+  where
+    passmatrix' acc _ 0 = acc
+    passmatrix' acc (x : xs) i =
+      passmatrix' (acc ++ [x : xs]) (xs ++ [x]) (i - 1)
+    passmatrix' _ _ _ = []
+
+wordcube :: [[Word8]] -> [[[Word8]]]
+wordcube = map wordmatrix
+
+
+iwordcube ::  [[[Word8]]] ->  [[[Word8]]]
+iwordcube x = cycle x
+
+wordlistreveal :: [[[Word8]]] -> [Word8] -> [Word8] -> [Word8]
+wordlistreveal a b c =
+  wordreveal' a c b c
+  where
+    wordreveal' _ [] _ _ = []
+    wordreveal' _ _ [] _ = []
+    wordreveal' (m:ms) (x : xs) (y : ys) p =
+      onewordreveal m x y : wordreveal' ms (xs ++ [x]) ys p
+    wordreveal' _ _ _ _ = []
+
+onewordreveal :: [[Word8]] -> Word8 -> Word8 -> Word8
+onewordreveal matrix pass input =
+  fromIntegral $ fromJust j
+  where
+    i = fromIntegral pass
+    j = elemIndex input $ head $ drop i matrix
+
+wordlisthide ::  [[[Word8]]]-> [Word8]  -> [Word8] -> [Word8]
+wordlisthide a b c =
+    wordhide' a c b c
+  where
+    wordhide' _ [] _ _ = []
+    wordhide' _ _ [] _ = []
+    wordhide' (m:ms) (x : xs) (y : ys) p =
+      onewordhide m x y : wordhide' ms (xs ++ [x]) ys p
+    wordhide' _ _ _ _ = []
+
+onewordhide :: [[Word8]] -> Word8 -> Word8 -> Word8
+onewordhide matrix pass input =
+  head $ drop j $ head $ drop i matrix
+  where
+    i = fromEnum pass
+    j = fromEnum input
