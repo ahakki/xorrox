@@ -11,31 +11,33 @@ defaultGen = mkStdGen 144
 initG :: Int -> StdGen
 initG = mkStdGen
 
-range8 ::StdGen -> (Int, StdGen)
+range8 ::StdGen -> (Word8, StdGen)
 range8 =
-    uniformR (fromEnum (minBound::Word8), fromEnum (maxBound::Word8))
+    uniformR ( minBound::Word8,  maxBound::Word8)
 
-rangeC :: StdGen -> (Int, StdGen)
+rangeC :: StdGen -> (Word8, StdGen)
 rangeC =
-    uniformR (fromEnum (minBound::Canonical), fromEnum (maxBound::Canonical))
+    uniformR ( fromIntegral (fromEnum (minBound::Canonical))
+             , fromIntegral (fromEnum (maxBound::Canonical)))
 
-genOne :: StdGen -> (StdGen -> (Int, StdGen)) -> Word8
+genOne :: StdGen -> (StdGen -> (Word8, StdGen)) -> Word8
 genOne i r =
     fromIntegral $ fst $ r i
 
-genList :: StdGen -> (StdGen -> (Int, StdGen)) -> [Word8]
+genList :: StdGen -> (StdGen -> (Word8, StdGen)) -> [Word8]
 genList i r =
     genOne i r : genList (snd (r i)) r
 
-randCGen :: StdGen -> (Int, StdGen)
+randCGen :: StdGen -> (Word8, StdGen)
 randCGen =
-    randomR (fromEnum (minBound::Canonical), fromEnum (maxBound::Canonical))
+    randomR ( fromIntegral (fromEnum (minBound::Canonical))
+            , fromIntegral (fromEnum (maxBound::Canonical)))
 
-randCGenL :: StdGen -> [Int]
+randCGenL :: StdGen -> [Word8]
 randCGenL g =
     fst (randCGen g) : randCGenL (snd (randCGen g))
 
-randSeedR :: (StdGen -> (Int, StdGen)) -> Int -> [Word8]
+randSeedR :: (StdGen -> (Word8, StdGen)) -> Int -> [Word8]
 randSeedR r s = genList (initG s) r
 
 randSeed8 :: Int -> [Word8]
