@@ -6,9 +6,13 @@ module Classical
 where
 
 import           Canonical (CString, Canonical)
+import           SoupKitchen
 import           Data.List       (elemIndex)
 import           Data.Maybe      (fromJust)
-import           Data.Word       (Word8)
+import           Data.Word       
+import qualified Data.ByteString as BS
+import           Data.ByteString (ByteString)
+import Data.Bits
 
 
 class Classical a where
@@ -95,3 +99,28 @@ onewordhide matrix pass input =
   where
     i = fromEnum pass
     j = fromEnum input
+
+hideC :: CString -> CString -> ByteString
+hideC x y = output
+  where
+    password = serialize x
+    input = zipWith xor rlistC $ serialize y
+    cube = iwordcube $ wordcube $ wordmatrix $ wordpasslist wordlist password
+    seed = mod (maxBound::Int) $ sum (map fromIntegral password)
+    rlistC = randSeed8 seed
+    rlist8 = randSeedC seed
+    output = BS.pack $ 
+        zipWith xor rlist8 $ wordlisthide cube input password
+
+revealC :: CString -> ByteString -> CString
+revealC x y = output
+  where 
+    password = serialize x
+    input = zipWith xor rlist8 $ BS.unpack y
+    cube = iwordcube $ wordcube $ wordmatrix $ wordpasslist wordlist password
+    seed = mod (maxBound::Int) $ sum (map fromIntegral password)
+    rlistC = randSeed8 seed
+    rlist8 = randSeedC seed
+    output:: CString
+    output = deserialize $ 
+        zipWith xor rlistC $ wordlistreveal cube input password

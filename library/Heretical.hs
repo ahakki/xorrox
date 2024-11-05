@@ -7,7 +7,7 @@ module Heretical
   --(Heretical (..)) 
 where
 
-import           Canonical     (Canonical (..))
+import           Canonical     (Canonical (..), CString)
 
 import           Data.Bool     (Bool, otherwise)
 import           Data.Char     (Char)
@@ -15,6 +15,7 @@ import           Data.Function (($), (.))
 import           Data.List     (head, null, notElem, map)
 import           Data.Maybe    (Maybe (Just, Nothing), fromJust, isNothing)
 import           Data.Tuple    (fst)
+import Text.Read (Read(..))
 
 
 class Heretical a where

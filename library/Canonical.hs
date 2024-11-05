@@ -12,6 +12,7 @@ import           Data.List     ((++))
 import           Data.Maybe    (Maybe (Just, Nothing))
 import           GHC.Enum      (Bounded, Enum)
 import           Text.Show     (Show (show))
+import Text.Read
 
 data Canonical
   = LG | LH | LI | LJ | LK | LL | LA    | N0 | N1 | N2 | N3 | N4
@@ -24,10 +25,11 @@ data Canonical
   | La | Lo | Lp | Lq | Lr              | SCOMMA | SDASH 
   | Ld | Le | Lf | Lg                   | SOPAREN | SCPAREN
   | Ls | Lt | Lu | Lz                   | SOBRKE | SCBRKT
-  | Lv | Lw | Lx | Ly                   | SOBRACE | SCBRACE
+  | Lv | Lw | Lx | Ly    | Lä | Lö | Lü | SOBRACE | SCBRACE
   deriving (Eq, Enum, Bounded, Show)
 
 type CString = [Canonical]
+
 
 instance {-# OVERLAPPING #-} Show CString where
   show :: CString -> [Char]
