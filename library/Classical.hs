@@ -5,14 +5,14 @@ module Classical
   --(Classical (..))
 where
 
-import           Canonical (CString, Canonical)
-import           SoupKitchen
+import           Canonical       (CString, Canonical)
+import           Data.Bits
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 import           Data.List       (elemIndex)
 import           Data.Maybe      (fromJust)
-import           Data.Word       
-import qualified Data.ByteString as BS
-import           Data.ByteString (ByteString)
-import Data.Bits
+import           Data.Word
+import           SoupKitchen
 
 
 class Classical a where
@@ -109,18 +109,40 @@ hideC x y = output
     seed = mod (maxBound::Int) $ sum (map fromIntegral password)
     rlistC = randSeed8 seed
     rlist8 = randSeedC seed
-    output = BS.pack $ 
+    output = BS.pack $
         zipWith xor rlist8 $ wordlisthide cube input password
 
 revealC :: CString -> ByteString -> CString
 revealC x y = output
-  where 
+  where
     password = serialize x
     input = zipWith xor rlist8 $ BS.unpack y
     cube = iwordcube $ wordcube $ wordmatrix $ wordpasslist wordlist password
-    seed = mod (maxBound::Int) $ sum (map fromIntegral password)
+    seed = mod (maxBound::Int) $ product (map fromIntegral password)
     rlistC = randSeed8 seed
     rlist8 = randSeedC seed
     output:: CString
-    output = deserialize $ 
+    output = deserialize $
         zipWith xor rlistC $ wordlistreveal cube input password
+
+hide8 :: [Word8] -> ByteString -> ByteString
+hide8 x y = output
+  where 
+    password = x
+    input = zipWith xor rlist8 y
+    cube = iwordcube $ wordcube $ wordmatrix $ wordpasslist wordlist password
+    seed = mod (maxBound::Int) $ sum (map fromIntegral password)
+    rlist8 = randSeedC seed
+    output = BS.pack $
+        zipWith xor rlist8 $ wordlisthide cube input password
+
+reveal8 :: [Word8] -> ByteString -> ByteString
+reveal8 x y = output
+  where
+    password = x
+    input = zipWith xor rlist8 $ BS.unpack y
+    cube = iwordcube $ wordcube $ wordmatrix $ wordpasslist wordlist password
+    seed = mod (maxBound::Int) $ product (map fromIntegral password)
+    rlist8 = randSeedC seed
+    output = BS.pack $ 
+        zipWith xor rlist8 $ wordlistreveal cube input password
