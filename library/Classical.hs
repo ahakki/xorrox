@@ -7,6 +7,7 @@ where
 
 import           Canonical       (CString, Canonical)
 import           Data.Bits
+import           Codec.Binary.UTF8.String as UTF8
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import           Data.List       (elemIndex)
@@ -125,24 +126,25 @@ revealC x y = output
     output = deserialize $
         zipWith xor rlistC $ wordlistreveal cube input password
 
-hide8 :: [Word8] -> ByteString -> ByteString
+hide8 :: String -> ByteString -> ByteString
 hide8 x y = output
   where 
-    password = x
-    input = zipWith xor rlist8 y
+    password = UTF8.encode x
+    input = zipWith xor rlist8 $ BS.unpack y
     cube = iwordcube $ wordcube $ wordmatrix $ wordpasslist wordlist password
     seed = mod (maxBound::Int) $ sum (map fromIntegral password)
     rlist8 = randSeedC seed
     output = BS.pack $
         zipWith xor rlist8 $ wordlisthide cube input password
 
-reveal8 :: [Word8] -> ByteString -> ByteString
+reveal8 :: String -> ByteString -> ByteString
 reveal8 x y = output
   where
-    password = x
+    password = UTF8.encode x
     input = zipWith xor rlist8 $ BS.unpack y
     cube = iwordcube $ wordcube $ wordmatrix $ wordpasslist wordlist password
     seed = mod (maxBound::Int) $ product (map fromIntegral password)
     rlist8 = randSeedC seed
     output = BS.pack $ 
         zipWith xor rlist8 $ wordlistreveal cube input password
+

@@ -1,9 +1,9 @@
 module SoupKitchen where
 
-import           System.Random
-import           Data.Word
+import           Canonical     (Canonical)
 
-import           Canonical
+import           Data.Word     (Word8)
+import           System.Random (Random (randomR), StdGen, mkStdGen, uniformR)
 
 defaultGen :: StdGen
 defaultGen = mkStdGen 144
